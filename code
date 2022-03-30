@@ -1,0 +1,492 @@
+//Ella Cathey
+//esc3cf
+//HW6
+
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import javax.swing.*;
+
+//ASSUMPTIONS:
+//	GPA is on a 4.0 scale, unweighted
+//	Grade points are based on UVA's scale, http://www.virginia.edu/registrar/acadrecord.html
+//	User can only take classes worth 1, 2, 3, 4, or 5 credits
+//	User cannot take classes for credit/no credit
+//	User can only enter "blank" credits when calculating a Required/Target GPA. Otherwise, blank credits will not affect the "Current GPA: " display and therefore cannot be entered at the top.
+//	Therefore, if a user wants to "quickly add 15 blank credit hours," they will have to do so in the Target GPA section of the program. 
+
+public class GUIgpa extends JFrame
+{
+	ArrayList<String> gradeList = new ArrayList<>(); //to keep track of letter grades entered
+	ArrayList<Double> hourList = new ArrayList<>(); //to keep track of credit hours entered
+	ArrayList<String> courses = new ArrayList<>(); //to keep track of course names entered
+	
+	double totalGradePoints = 0; //total number of grade points the user has based on entered courses
+	double totalCreditHours = 0; //total number of credit hours a user has based on entered courses
+	double gradeNum=0; //grade points (the gpa number equivalent of a certain letter grade), e.g. A = 4.0
+	double currentGpa=0; //current GPA of user based on courses entered
+	
+	JLabel gpa;
+	JLabel instructionsCH;
+	JLabel instructionsG;
+	JLabel instructionsN;
+	JLabel instructionsRC;
+	JLabel tGpa; //there are multiple tGpa labels so they can be separated by JTextFields for user input
+	JLabel tGpa1;
+	JLabel tGpa2;
+	JLabel tGpa3;
+	
+	JButton add; //adds a course 
+	JButton startOver; //clears everything
+	JButton remove; //removes a course
+	JButton go; //calculates req. GPA based on target GPA & blank credit hours
+	
+	JComboBox creditHours; //displays list of hours (1.0, 2.0, etc...) for user to select
+	JComboBox optionalGrade; //displays list of grades (A+, A, A-, etc...) for user to select
+	JTextArea optionalName;	//user can enter course name if they wish
+	JComboBox coursesToRemove; //list of courses that can be removed 
+	JTextField enteredGpa; //target GPA that user has entered
+	JTextField credits; //blank credits that user has entered
+	
+	JList enteredCourses; //displays entered courses & their corresponding grades & credit hours 
+	JLabel instructionsEC; 
+	
+	public static void main(String[] args) 
+	{
+		new GUIgpa();
+	}
+	
+	public GUIgpa()
+	{
+		courses.add(" "); //so that the first item in the drop down list is " " instead of a course name
+		String[] letterGrades = {"(select grade)", "A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "F"};
+		String[] creditHrs = {"(select number of credit hours)", "1.0", "2.0", "3.0", "4.0", "5.0"}; 
+		String [] removableCourses = courses.toArray(new String[courses.size()]);
+		
+		
+		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		
+		//setting width and height to width and height of the screen
+		int height = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+		int width = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+		this.setSize(width, height);
+		
+		
+		//labels that give instructions to the user,
+		//boxes or lists or TextFields that corresponds with the instructions
+		instructionsCH = new JLabel("<html>Enter # credit hours.</html>" );
+		creditHours = new JComboBox(creditHrs);	
+		instructionsG = new JLabel("<html>Enter course grade.</html>");
+		optionalGrade = new JComboBox(letterGrades);			
+		instructionsN = new JLabel("<html>Enter course name (optional).</html>");
+		optionalName = new JTextArea("");		
+		instructionsRC = new JLabel("Want to remove a course?");
+		coursesToRemove = new JComboBox(removableCourses);
+		enteredCourses = new JList(removableCourses);
+		instructionsEC = new JLabel("Entered courses:");
+		tGpa = new JLabel("Calculate GPA required to obtain a");
+		tGpa1 = new JLabel("based on your current courses plus");
+		tGpa2 = new JLabel("blank credit hours:");
+		tGpa3 = new JLabel("Required GPA:");
+		enteredGpa = new JTextField("(enter target GPA)");
+		credits = new JTextField("(# credit hours)");
+	   
+		
+		//adding buttons and setting their colors
+		add = new JButton("Add course");
+		add.setBackground(Color.CYAN);
+		add.setForeground(Color.RED);
+		add.setOpaque(true);
+		
+		startOver = new JButton("Click here to start over");
+		startOver.setBackground(Color.GREEN);
+		startOver.setForeground(Color.BLUE);
+		startOver.setOpaque(true);
+		
+		remove = new JButton("Remove");
+		remove.setBackground(Color.YELLOW);
+		remove.setForeground(Color.MAGENTA);
+		remove.setOpaque(true);
+		
+		go = new JButton("Go");
+		go.setBackground(Color.RED);
+		go.setForeground(Color.BLACK);
+		go.setOpaque(true);
+		
+		
+		//gpa display label
+		gpa = new JLabel("GPA: 0.00");
+		
+		//setting sizes:
+		//make sure to set ALL sizes relative to width and height, so that the program will
+		//run in an adjusted size on different machines with different screen sizes
+		instructionsCH.setSize(23*width/60, height/6);
+		instructionsG.setSize(23*width/60, height/6);
+		instructionsN.setSize(23*width/60, height/6);
+		instructionsRC.setSize(23*width/60, height/6);
+		creditHours.setSize(width/4, height/16);
+		optionalGrade.setSize(width/4, height/16);
+		optionalName.setSize(width/4, height/40);
+		coursesToRemove.setSize(width/4, height/16);
+		enteredCourses.setSize(7*width/24, height/5);	
+		instructionsEC.setSize(23*width/60, height/6);
+		
+		tGpa.setSize(width/5, height/6);
+		tGpa1.setSize(width/4, height/6);
+		tGpa2.setSize(width/6, height/6);
+		tGpa3.setSize(width/3, height/6);
+		enteredGpa.setSize(width/10, height/40);
+		credits.setSize(width/10, height/40);
+		
+		add.setSize(width/9, height/16);
+		startOver.setSize(width/4, height/16);
+		remove.setSize(width/8, 7*height/100);
+		go.setSize(width/13, height/30);
+		
+		gpa.setSize(width/2, height/6);
+		
+		//setting fonts and colors of elements
+		Font kefa10 = new Font("Kefa", Font.PLAIN, 15);
+		Font kefa20 = new Font("Kefa", Font.PLAIN, 20);
+		Font kefa40bold = new Font("Kefa", Font.BOLD, 40);
+		instructionsN.setFont(kefa20);
+		instructionsCH.setFont(kefa20);
+		instructionsG.setFont(kefa20);
+		instructionsRC.setFont(kefa10);
+		coursesToRemove.setFont(kefa10);
+		gpa.setFont(new Font("Kefa", Font.BOLD, 50));
+		creditHours.setFont(kefa10);
+		optionalGrade.setFont(kefa10);
+		optionalName.setFont(kefa10);
+		add.setFont(kefa20);
+		startOver.setFont(kefa10);
+		remove.setFont(kefa10);
+		go.setFont(kefa10);
+		instructionsEC.setFont(kefa10);
+		tGpa.setFont(kefa10);
+		tGpa1.setFont(kefa10);
+		tGpa2.setFont(kefa10);
+		tGpa3.setFont(new Font("Kefa", Font.BOLD, 25));
+		enteredGpa.setFont(new Font("Kefa", Font.PLAIN, 13));
+		credits.setFont(new Font("Kefa", Font.PLAIN, 13));
+		
+		//setting location of elements in relation to screen width and height
+		instructionsN.setLocation(width/100, height/15);
+		optionalName.setLocation(width/100, 7*height/32);
+		
+		instructionsG.setLocation(9*width/32, height/15);
+		optionalGrade.setLocation(9*width/32, height/5);
+		
+		instructionsCH.setLocation(18*width/32, height/15);
+		creditHours.setLocation(18*width/32, height/5);
+		
+		instructionsRC.setLocation(25*width/32, 7*height/20);
+		coursesToRemove.setLocation(24*width/32, 9*height/20);
+		
+		enteredCourses.setLocation(4*width/10, 3*height/8);
+		instructionsEC.setLocation(4*width/10, 9*height/32);
+		
+		tGpa.setLocation(width/2, 12*height/20);
+		tGpa1.setLocation(width/2, 13*height/20);
+		tGpa2.setLocation(79*width/100, 13*height/20);
+		tGpa3.setLocation(55*width/100, 29*height/40);
+		enteredGpa.setLocation(137*width/200, 107*height/160);
+		credits.setLocation(137*width/200, 115*height/160);
+				
+		add.setLocation(27*width/32, 3*height/15);
+		startOver.setLocation(width/6, 7*height/10);
+		remove.setLocation(25*width/32, 21*height/40);
+		go.setLocation(9*width/10, 57*height/80);
+				
+		gpa.setLocation(width/10, 6*height/16);
+		
+		//adding ActionListeners for the four buttons
+		add.addActionListener(new submitButtonListener());
+		startOver.addActionListener(new submitButtonListener());
+		remove.addActionListener(new submitButtonListener());
+		go.addActionListener(new submitButtonListener());
+		
+		
+		//adding all elements
+		this.add(instructionsCH);
+		this.add(instructionsG);
+		this.add(instructionsN);
+		this.add(instructionsRC);
+	
+		this.add(creditHours);
+		this.add(optionalGrade);
+		this.add(optionalName);
+		this.add(coursesToRemove);
+		
+		this.add(enteredCourses);
+		this.add(instructionsEC);
+		
+		this.add(tGpa);
+		this.add(tGpa1);
+		this.add(tGpa2);
+		this.add(tGpa3);
+		this.add(enteredGpa);
+		this.add(credits);
+		
+		this.add(add);
+		this.add(startOver);
+		this.add(remove);
+		this.add(go);
+		
+		this.add(gpa);
+
+		this.add(new JLabel());
+		this.setLocationRelativeTo(null);
+		setVisible(true);	
+	}
+	
+	//returns the gpa number that corresponds to the letter grade that the user has entered
+	public double getGradeNum(String grade)
+	{
+		if (grade.equals("A+") || grade.equals("A"))
+        	gradeNum = 4.000;
+        
+        else if (grade.equals("A-"))
+        	gradeNum = 3.700;
+        
+        else if (grade.equals("B+"))
+        	gradeNum = 3.300;
+        
+        else if (grade.equals("B"))
+        	gradeNum = 3.000;
+        
+        else if (grade.equals("B-"))
+        	gradeNum = 2.700;
+        
+        else if (grade.equals("C+"))
+        	gradeNum = 2.300;
+        
+        else if (grade.equals("C"))
+        	gradeNum = 2.000;
+        
+        else if (grade.equals("C-"))
+        	gradeNum = 1.700;
+        
+        else if (grade.equals("D+"))
+        	gradeNum = 1.300;
+        
+        else if (grade.equals("D"))
+        	gradeNum = 1.000;
+       
+        else if (grade.equals("D-"))
+        	gradeNum = 0.700;
+       
+        else if (grade.equals("F") || grade.equals("(select grade)"))
+        	gradeNum = 0.000;
+		
+		return gradeNum;
+	}
+	
+	//returns the total number of credit hours from the course list that the user has entered
+	//does not include blank credit hours
+	public double getTotalHours()
+	{
+		 double sum = 0;
+         for(Double d : hourList) //sums all elements in hourList
+             {  	 
+        	 		sum += d;
+             }
+         return sum; //sum is total number of non-blank credit hours
+	}
+	
+	//calculates and returns the current GPA of a user as a String, based on the user's entered courses
+	public String getCurrentGpa()
+	{
+		double gradePts=0;
+		
+		for(int i=0; i<hourList.size(); i++) //this loop calculates the grade points earned from each course  
+		{									//the user has entered, and them sums them all together
+			double h = hourList.get(i);
+			double g = getGradeNum(gradeList.get(i));
+			gradePts += h*g; 
+		}
+		
+		totalCreditHours = getTotalHours();
+		currentGpa = gradePts/totalCreditHours; //GPA = total grade points divided by total number of credit hours
+		String s = Double.toString(currentGpa) + "00000"; //convert to String 
+		return s.substring(0, 4); //rounds GPA to 2 digits
+	}
+	
+	//checks if an input is a "valid" number
+	//returns true if the input String only contains integers AND one or zero instances of '.'
+	//returns false otherwise
+	public boolean isValid(String a) 
+	{
+		int count = 0;
+		for(int i=0; i<a.length(); i++) //counts number of times '.' appears in the String
+		{
+		   if(a.charAt(i) == 46) 
+		   {
+		      count++;
+		   } 
+		}
+		if(count == 1 || count == 0) //if '.' only appears once or 0 times, continue
+		{
+			for(int i=0; i< a.length(); i++) //loop through String
+			{
+				if((a.charAt(i) >= 48 && a.charAt(i) <= 57) || a.charAt(i) == 46) //if the selected char is an integer
+				{
+					//do nothing 
+				}
+				else //if the selected char is NOT an integer (and therefore not a valid input)
+				{
+					return false;
+				}
+			}
+			return true; //if the whole String consists of integers and one or zero instances of '.'		
+		}
+		else
+		{
+			return false; //in any other case return false
+		}
+	}
+	
+	//What will the program do when each button is pressed?
+	private class submitButtonListener implements ActionListener 
+	{	
+		@Override
+		public void actionPerformed(ActionEvent e) 
+		{
+			 if(e.getSource() == add) //if the users clicks "Add"
+			 {
+				 Object hours = creditHours.getSelectedItem(); //what the user has entered for number of credit hours
+				 String hoursString = hours.toString();
+				 Object grade = optionalGrade.getSelectedItem(); //what the user has entered for letter grade 
+				 String gradeString = grade.toString();
+				 if(!hoursString.equals("(select number of credit hours)") && !gradeString.equals("(select grade)")) //if the user has actually selected something from both JComboBoxes
+				 {	  		 
+					 double gradeDouble = getGradeNum(gradeString); //gpa number equivalent of selected letter grade
+					 gradeList.add(gradeString); //adds letter grade to gradeList
+				 
+					 double hoursDouble = Double.parseDouble(hoursString); 
+					 hourList.add(hoursDouble); //adds credit hours of course to hourList
+					 totalCreditHours = getTotalHours();    	
+				 
+					 String courseName;
+					 if(optionalName.getText().equals("")) //if the user has chosen to not enter a course name
+		         		{
+						 	//displays "unspecified course name", letter grade, and credit hours for the course
+		        	 			courseName = "unspecified course name" + ", (" + gradeString + "), " + hoursString + " hours";;
+		         		}
+					 else //if the user has chosen to enter a course name
+		         		{	
+						 	//displays course name, letter grade, and credit hours for the course
+		        	 			courseName = optionalName.getText() + ", (" + gradeString + "), " + hoursString + " hours";
+		         		}
+					 courses.add(courseName); //adds this info to courses list
+					 coursesToRemove.addItem(courseName); //adds this info to the JComboBox of courses that can be removed 
+					 String [] listedCourses = courses.toArray(new String[courses.size()]);
+					 enteredCourses.setListData(listedCourses); //adds this info to the box that displays the entered courses	 
+				
+					 //clears input boxes and resets lists so the user can now add another course if they wish
+					 optionalName.setText("");
+					 optionalGrade.setSelectedIndex(0);
+					 creditHours.setSelectedIndex(0);
+				 
+					 totalGradePoints += gradeDouble*hoursDouble; //updates total grade points based on recent input
+				 
+					 //calculates and displays gpa
+					 String g = getCurrentGpa();
+					 gpa.setText("GPA: " + g);	
+				 }
+			 }
+			 
+			 if(e.getSource() == startOver) //if the user clicks "Click here to start over"
+			 {
+				 //clears all lists, variables, and input areas that store or display user input information
+				 gradeList.clear();
+				 hourList.clear();
+				 courses.clear();
+				 courses.add("");
+				 totalCreditHours = 0;
+				 totalGradePoints = 0;
+				 coursesToRemove.removeAllItems();
+				 coursesToRemove.insertItemAt("", 0);
+				 optionalName.setText("");
+				 optionalGrade.setSelectedIndex(0);
+				 creditHours.setSelectedIndex(0);
+				 gpa.setText("GPA: 0.00");
+				 String[] tempArr = {};
+				 enteredCourses.setListData(tempArr);
+				 credits.setText("(# credit hours)");
+				 enteredGpa.setText("(enter target GPA)");
+				 tGpa3.setText("Required GPA: ");
+			 }
+			 
+			 if(e.getSource() == remove) //if the user clicks "Remove"
+			 {
+				 int i = coursesToRemove.getSelectedIndex();
+				 if(i>0) //if the user actually selected a course to remove
+				 {
+				 Object o = coursesToRemove.getItemAt(i);
+				 double hr = (hourList.get(i-1));
+				 hourList.remove(hr); //removes info from hourList
+			 
+				 totalCreditHours = getTotalHours(); //updates totalCreditHours
+				 
+				 coursesToRemove.removeItem(o); //removes info from list of removable courses
+				 courses.remove(i); //removes info from list of entered courses
+				 gradeList.remove(i-1); //removes info from list of letter grades
+				 String[] tempArr = courses.toArray(new String[courses.size()]);
+				 enteredCourses.setListData(tempArr); //updates list that displays entered courses
+				 
+				 if(totalCreditHours == 0) //if the user removes the last remaining course
+				 	{
+					 gpa.setText("GPA: 0.00");	
+				 	}
+				 else //if there are other courses still in the list after the user removes one
+				 	{
+					 	String g = getCurrentGpa(); //updates & displays new GPA
+					 	gpa.setText("GPA: " + g); 	
+				 	}
+				 }
+				 coursesToRemove.setSelectedIndex(0); //once the course has been removed, sets the list of removable courses
+				 									// to " " so that the user can remove another if they wish
+			 }
+			 
+			 if(e.getSource() == go) //if the user clicks "Go"
+			 {
+				 String targGpa = enteredGpa.getText().trim(); //user input of target GPA as a String
+				 String extraCreds = credits.getText().trim(); //user input of blank credit hours as a String
+				 
+				 if (isValid(targGpa) == false || isValid(extraCreds) == false) //if the inputs were not in the proper format
+				 { 
+					 tGpa3.setText("Required GPA: (invalid input)"); //alert the user of invalid input
+				 }
+				 
+				 else if(getTotalHours() == 0 && courses.size() == 1) //if there are no courses that have been already entered
+				 {
+					 tGpa3.setText("Required GPA: " + targGpa); //the req. GPA is just the target GPA
+				 }
+				 
+				 else if(isValid(targGpa) == true && isValid(extraCreds) == true) //if the input is properly formatted
+				 {	
+					 double targGpaD = Double.parseDouble(targGpa);
+					 double extraCredsD = Double.parseDouble(extraCreds);
+				 
+					 double totalCredH = extraCredsD + getTotalHours(); //ALL credit hours, including blank ones
+				 
+					 double currentGpa = Double.parseDouble(getCurrentGpa());
+				
+					//calculates and displays required GPA based on current courses + blank credit hours
+					 double reqGpa = (targGpaD*totalCredH - currentGpa*getTotalHours()) / extraCredsD; 
+					 tGpa3.setText("Required GPA: " + reqGpa);
+				 
+					 if(reqGpa>4) //warns the user if req. GPA is over 4.0
+					 {
+						 JOptionPane.showMessageDialog(null, "Required GPA is over 4.0. Perhaps you could try adding more credit hours and recalculating." );
+					 }
+					 else if(reqGpa<2) //warns the user if req. GPA is less than 2.0
+					 {
+						 JOptionPane.showMessageDialog(null, "Required GPA is less than 2.0. Perhaps you could try adding fewer credit hours and recalculating." );
+					 }
+				 }
+			 }			 
+		}	
+	}
+}
